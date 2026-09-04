@@ -1,16 +1,16 @@
 import React from 'react';
 import { NavLink } from 'react-router';
-
+import { HiMiniCurrencyDollar } from "react-icons/hi2";
 const Navbar = () => {
     const links=[
-        <li><NavLink to='/home'>Home</NavLink></li>,
+        <li><NavLink to='/'>Home</NavLink></li>,
         <li><NavLink to='/all-products'>All Products</NavLink></li>,
         <li><NavLink to='/my-products'>My Products</NavLink></li>,
         <li><NavLink to='/my-bids'>My Bids</NavLink></li>,
         <li><NavLink to='/create-product'>Create Product</NavLink></li>,
     ]
     return (
-        <div className="navbar bg-base-100 shadow-sm">
+        <div className="navbar bg-base-100 w-11/12 mx-auto mt-3">
   <div className="navbar-start">
     <div className="dropdown">
       <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -26,7 +26,8 @@ const Navbar = () => {
     
       
     </div>
-    <a className="btn btn-ghost text-xl">daisyUI</a>
+    <HiMiniCurrencyDollar className='w-8 h-8' />
+    <a className="btn btn-ghost text-xl">KmsDeals</a>
   </div>
   <div className="navbar-center hidden lg:flex">
     <ul className="menu menu-horizontal px-1">
@@ -37,7 +38,7 @@ const Navbar = () => {
     
   </div>
   <div className="navbar-end">
-    <a className="btn">Button</a>
+    <a className="btn">Login</a>
   </div>
 </div>
     );
