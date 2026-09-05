@@ -100,7 +100,7 @@ const SingleCard = ({ singleProduct }) => {
 
       {/* Action Button */}
       <div className="px-5 pb-5">
-        <Link to={`/products/${_id}`}>
+        <Link to={`/productDetails/${_id}`}>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
