@@ -13,7 +13,7 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-base-100/80 mt-3">
+    <header className=" backdrop-blur-md bg-base-100/80 mt-3">
       <div className="navbar w-11/12 mx-auto max-w-7xl px-0 py-2">
         {/* Navbar Start */}
         <div className="navbar-start">
