@@ -4,25 +4,30 @@ import { motion } from 'framer-motion';
 
 const ProductDetails = () => {
   const { id } = useParams();
+
+  // State Management
   const [product, setProduct] = useState(null);
+  const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bidsLoading, setBidsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modal State & Form Controls
+  // Modal & Form State
   const bidModalRef = useRef(null);
   const [bidAmount, setBidAmount] = useState('');
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerContact, setBuyerContact] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [buyerImage, setBuyerImage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
+  // 1. Fetch Product Details
   useEffect(() => {
     setLoading(true);
     fetch(`http://localhost:3000/productDetails/${id}`)
       .then((res) => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch product details.');
-        }
+        if (!res.ok) throw new Error('Failed to fetch product details.');
         return res.json();
       })
       .then((data) => {
@@ -30,12 +35,35 @@ const ProductDetails = () => {
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Error fetching product details:", err);
+        console.error('Error fetching product details:', err);
         setError(err.message);
         setLoading(false);
       });
   }, [id]);
 
+  // 2. Fetch All Bids for This Specific Product (GET /bids/product/:productId)
+  const fetchBids = () => {
+    setBidsLoading(true);
+    fetch(`http://localhost:3000/bids/product/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch bids.');
+        return res.json();
+      })
+      .then((data) => {
+        setBids(data);
+        setBidsLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching bids:', err);
+        setBidsLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (id) fetchBids();
+  }, [id]);
+
+  // Handle Opening Modal
   const handleOpenModal = () => {
     setFormError('');
     if (product?.price_min) {
@@ -46,12 +74,14 @@ const ProductDetails = () => {
     }
   };
 
+  // Handle Closing Modal
   const handleCloseModal = () => {
     if (bidModalRef.current) {
       bidModalRef.current.close();
     }
   };
 
+  // 3. Submit New Bid (POST /bids)
   const handleBidSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
@@ -67,18 +97,15 @@ const ProductDetails = () => {
     setSubmitting(true);
 
     const bidPayload = {
-      productId: product._id,
-      productTitle: product.title,
-      sellerEmail: product.email,
-      bidAmount: numericBid,
-      buyerContact,
-      deliveryAddress,
-      status: 'pending',
-      createdAt: new Date()
+      product: product._id, // References Products._id
+      buyer_image: buyerImage || 'https://i.pravatar.cc/150?img=33',
+      buyer_name: buyerName,
+      buyer_contact: buyerContact,
+      buyer_email: buyerEmail,
+      bid_price: numericBid
     };
 
     try {
-      // POST request to backend API (adjust endpoint if needed)
       const response = await fetch('http://localhost:3000/bids', {
         method: 'POST',
         headers: {
@@ -93,15 +120,41 @@ const ProductDetails = () => {
 
       setSubmitting(false);
       handleCloseModal();
-      alert(`Success! Your offer of $${numericBid.toLocaleString()} for "${product.title}" has been submitted.`);
       
-      // Reset Form
+      // Auto-refresh the bids table with the new data
+      fetchBids();
+
+      // Reset form input values
+      setBuyerName('');
+      setBuyerEmail('');
       setBuyerContact('');
-      setDeliveryAddress('');
+      setBuyerImage('');
     } catch (err) {
-      console.error("Error submitting bid:", err);
-      setFormError(err.message || 'Something went wrong while submitting your bid.');
+      console.error('Error submitting bid:', err);
+      setFormError(err.message || 'Something went wrong while submitting.');
       setSubmitting(false);
+    }
+  };
+
+  // 4. Update Bid Status: Accept or Reject (PATCH /bids/:id)
+  const handleStatusUpdate = async (bidId, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:3000/bids/${bidId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        // Refresh table to show updated status
+        fetchBids();
+      } else {
+        console.error('Failed to update bid status');
+      }
+    } catch (err) {
+      console.error('Error updating bid status:', err);
     }
   };
 
@@ -157,10 +210,10 @@ const ProductDetails = () => {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="w-11/12 mx-auto max-w-7xl py-8 sm:py-12"
+      className="w-11/12 mx-auto max-w-7xl py-8 sm:py-12 space-y-12"
     >
       {/* Breadcrumb Navigation */}
-      <nav className="text-xs sm:text-sm text-gray-500 mb-6 flex items-center gap-2">
+      <nav className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
         <Link to="/" className="hover:text-purple-600 transition-colors">Home</Link>
         <span>/</span>
         <Link to="/all-products" className="hover:text-purple-600 transition-colors">All Products</Link>
@@ -168,16 +221,17 @@ const ProductDetails = () => {
         <span className="text-gray-900 font-medium truncate max-w-[200px] sm:max-w-none">{title}</span>
       </nav>
 
+      {/* Main Product Card */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-        {/* Left Column: Image Display */}
-        <div className="lg:col-span-7 space-y-4">
+        {/* Left: Product Image */}
+        <div className="lg:col-span-7">
           <div className="relative rounded-3xl overflow-hidden border border-gray-200 bg-slate-100 shadow-sm">
             <img
-              src={image || "https://images.unsplash.com/photo-1688578735427-994ec3238384"}
+              src={image || 'https://images.unsplash.com/photo-1688578735427-994ec3238384'}
               alt={title}
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = "https://images.unsplash.com/photo-1688578735427-994ec3238384";
+                e.target.src = 'https://images.unsplash.com/photo-1688578735427-994ec3238384';
               }}
               className="w-full h-[350px] sm:h-[480px] object-cover"
             />
@@ -194,7 +248,7 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        {/* Right Column: Information & Seller Details */}
+        {/* Right: Product & Seller Details */}
         <div className="lg:col-span-5 space-y-6">
           <div className="space-y-3 pb-6 border-b border-gray-200">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
@@ -204,7 +258,6 @@ const ProductDetails = () => {
               Product ID: <span className="text-gray-600 font-medium">{_id}</span>
             </p>
 
-            {/* Price Box */}
             <div className="bg-purple-50/60 p-4 rounded-2xl border border-purple-100 mt-4 flex items-center justify-between">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-purple-600 block">
@@ -250,8 +303,8 @@ const ProductDetails = () => {
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Seller Information</h3>
             <div className="flex items-center gap-3">
               <img
-                src={seller_image || "https://i.pravatar.cc/150?img=33"}
-                alt={seller_name || "Seller"}
+                src={seller_image || 'https://i.pravatar.cc/150?img=33'}
+                alt={seller_name || 'Seller'}
                 className="w-12 h-12 rounded-full object-cover border border-purple-200"
               />
               <div>
@@ -266,7 +319,7 @@ const ProductDetails = () => {
             )}
           </div>
 
-          {/* Trigger Button */}
+          {/* Trigger Modal Button */}
           <div>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -285,7 +338,120 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Professional Industry-Standard Modal */}
+      {/* Bids Table Section */}
+      <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Bids for this Product</h2>
+            <p className="text-xs text-gray-500 mt-1">All live offers submitted by buyers</p>
+          </div>
+          <span className="text-xs font-semibold bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full border border-purple-100">
+            Total Bids: {bids.length}
+          </span>
+        </div>
+
+        {bidsLoading ? (
+          <div className="py-12 text-center">
+            <span className="loading loading-spinner loading-md text-purple-600"></span>
+            <p className="text-xs text-gray-400 mt-2">Loading active offers...</p>
+          </div>
+        ) : bids.length === 0 ? (
+          <div className="py-12 text-center bg-slate-50 rounded-2xl border border-dashed border-gray-200 space-y-2">
+            <p className="text-sm font-semibold text-gray-600">No bids submitted yet.</p>
+            <p className="text-xs text-gray-400">Click "I Want To Buy / Place A Bid" above to submit the first offer!</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 text-xs uppercase text-gray-400 bg-slate-50/50">
+                  <th className="py-3 px-4">SL No</th>
+                  <th className="py-3 px-4">Product Name</th>
+                  <th className="py-3 px-4">Buyer Info</th>
+                  <th className="py-3 px-4">Seller Name</th>
+                  <th className="py-3 px-4">Bid Price</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {bids.map((bid, index) => (
+                  <tr key={bid._id} className="hover:bg-slate-50/60 transition-colors">
+                    {/* 1. SL No */}
+                    <td className="py-4 px-4 font-bold text-gray-500">{index + 1}</td>
+
+                    {/* 2. Product Name */}
+                    <td className="py-4 px-4 font-medium text-gray-900 max-w-[180px] truncate">{title}</td>
+
+                    {/* 3. Buyer Info */}
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={bid.buyer_image || 'https://i.pravatar.cc/150?img=33'}
+                          alt={bid.buyer_name}
+                          className="w-9 h-9 rounded-full object-cover border border-gray-200"
+                        />
+                        <div>
+                          <p className="font-bold text-xs text-gray-900">{bid.buyer_name || 'Anonymous Buyer'}</p>
+                          <p className="text-[11px] text-gray-400">{bid.buyer_email || 'No Email'}</p>
+                          {bid.buyer_contact && (
+                            <p className="text-[11px] text-purple-600 font-medium">{bid.buyer_contact}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* 4. Seller Name */}
+                    <td className="py-4 px-4 text-gray-600 font-medium">{seller_name || 'Marketplace Seller'}</td>
+
+                    {/* 5. Bid Price */}
+                    <td className="py-4 px-4 font-extrabold text-purple-700">
+                      ${Number(bid.bid_price).toLocaleString()}
+                    </td>
+
+                    {/* 6. Status Badge */}
+                    <td className="py-4 px-4">
+                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                        bid.status === 'confirmed'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : bid.status === 'rejected'
+                          ? 'bg-rose-100 text-rose-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {bid.status}
+                      </span>
+                    </td>
+
+                    {/* 7. Actions (Accept or Reject) */}
+                    <td className="py-4 px-4 text-center">
+                      {bid.status === 'pending' ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleStatusUpdate(bid._id, 'confirmed')}
+                            className="btn btn-xs bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-lg"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleStatusUpdate(bid._id, 'rejected')}
+                            className="btn btn-xs bg-rose-600 hover:bg-rose-700 text-white border-none rounded-lg"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">No actions available</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Place Bid Modal Window */}
       <dialog ref={bidModalRef} className="modal modal-bottom sm:modal-middle">
         <div className="modal-box p-0 bg-white rounded-3xl overflow-hidden max-w-lg shadow-2xl border border-gray-100">
           
@@ -303,11 +469,11 @@ const ProductDetails = () => {
             </span>
             <h3 className="text-xl font-extrabold mt-2 line-clamp-1">{title}</h3>
             <p className="text-xs text-purple-100 mt-1">
-              Minimum acceptable bid: <span className="font-bold">${price_min ? Number(price_min).toLocaleString() : '0'}</span>
+              Minimum acceptable offer: <span className="font-bold">${price_min ? Number(price_min).toLocaleString() : '0'}</span>
             </p>
           </div>
 
-          {/* Modal Body Form */}
+          {/* Modal Form */}
           <form onSubmit={handleBidSubmit} className="p-6 space-y-4">
             {formError && (
               <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-medium">
@@ -315,10 +481,69 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Input: Bid Amount */}
+            {/* Buyer Name */}
             <div className="form-control w-full">
               <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Your Offer Amount ($)
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={buyerName}
+                onChange={(e) => setBuyerName(e.target.value)}
+                placeholder="Enter your name"
+                className="input input-bordered w-full font-medium text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl"
+              />
+            </div>
+
+            {/* Buyer Email */}
+            <div className="form-control w-full">
+              <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={buyerEmail}
+                onChange={(e) => setBuyerEmail(e.target.value)}
+                placeholder="buyer@example.com"
+                className="input input-bordered w-full font-medium text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl"
+              />
+            </div>
+
+            {/* Buyer Contact */}
+            <div className="form-control w-full">
+              <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Phone / WhatsApp Contact
+              </label>
+              <input
+                type="text"
+                required
+                value={buyerContact}
+                onChange={(e) => setBuyerContact(e.target.value)}
+                placeholder="+880 1700-000000"
+                className="input input-bordered w-full font-medium text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl"
+              />
+            </div>
+
+            {/* Buyer Profile Picture URL */}
+            <div className="form-control w-full">
+              <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Profile Photo URL (Optional)
+              </label>
+              <input
+                type="url"
+                value={buyerImage}
+                onChange={(e) => setBuyerImage(e.target.value)}
+                placeholder="https://example.com/photo.jpg"
+                className="input input-bordered w-full font-medium text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl"
+              />
+            </div>
+
+            {/* Bid Amount */}
+            <div className="form-control w-full">
+              <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Offer Amount ($)
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
@@ -328,53 +553,10 @@ const ProductDetails = () => {
                   required
                   value={bidAmount}
                   onChange={(e) => setBidAmount(e.target.value)}
-                  placeholder="Enter your offer"
+                  placeholder="Enter your offer price"
                   className="input input-bordered w-full pl-8 font-semibold text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl"
                 />
               </div>
-            </div>
-
-            {/* Input: Contact Number */}
-            <div className="form-control w-full">
-              <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Contact Phone / WhatsApp
-              </label>
-              <input
-                type="text"
-                required
-                value={buyerContact}
-                onChange={(e) => setBuyerContact(e.target.value)}
-                placeholder="+1 (555) 000-0000"
-                className="input input-bordered w-full font-medium text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl"
-              />
-            </div>
-
-            {/* Input: Delivery / Meeting Location */}
-            <div className="form-control w-full">
-              <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Preferred Delivery / Pickup Location
-              </label>
-              <textarea
-                required
-                rows={2}
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-                placeholder="City, Area, or specific meeting point..."
-                className="textarea textarea-bordered w-full font-medium text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl text-sm"
-              />
-            </div>
-
-            {/* Seller Summary Preview */}
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-gray-100 text-xs flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img
-                  src={seller_image || "https://i.pravatar.cc/150?img=33"}
-                  alt={seller_name}
-                  className="w-7 h-7 rounded-full object-cover"
-                />
-                <span className="text-gray-600 font-medium">Seller: <strong className="text-gray-900">{seller_name || 'Marketplace Member'}</strong></span>
-              </div>
-              <span className="text-purple-600 font-bold">Direct Offer</span>
             </div>
 
             {/* Modal Actions */}
@@ -404,7 +586,7 @@ const ProductDetails = () => {
           </form>
         </div>
 
-        {/* Backdrop click to close */}
+        {/* Backdrop overlay to close */}
         <form method="dialog" className="modal-backdrop bg-gray-900/40 backdrop-blur-sm">
           <button>close</button>
         </form>
