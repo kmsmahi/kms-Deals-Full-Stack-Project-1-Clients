@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { motion } from 'framer-motion';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
+
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,10 +22,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Add your authentication logic here (e.g., Firebase signInWithEmailAndPassword)
+      // Add Firebase/Auth login here (e.g., await signInWithEmailAndPassword(auth, email, password))
       console.log('Logging in user:', formData);
       setLoading(false);
-      navigate('/');
+      navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
       setError('Invalid email or password. Please try again.');
@@ -34,6 +37,7 @@ const Login = () => {
     try {
       // Add Google OAuth Provider login here
       console.log('Google login initiated');
+      navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
       setError('Failed to sign in with Google.');
@@ -167,10 +171,10 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Footer link */}
+        {/* Updated link target to match auth/register route */}
         <p className="text-center text-xs text-gray-500">
           Don't have an account?{' '}
-          <Link to="/register" className="font-bold text-purple-600 hover:underline">
+          <Link to="/auth/register" className="font-bold text-purple-600 hover:underline">
             Create an account
           </Link>
         </p>

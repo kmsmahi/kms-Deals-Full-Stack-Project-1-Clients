@@ -1,9 +1,13 @@
-import React from 'react';
-import { NavLink, Link } from 'react-router';
+import React, { useState } from 'react';
+import { NavLink, Link, useNavigate } from 'react-router';
 import { HiMiniCurrencyDollar } from "react-icons/hi2";
 import { motion } from 'framer-motion';
 
 const Navbar = () => {
+  // Replace this placeholder with your actual AuthContext user state (e.g., const { user, logOut } = useAuth();)
+  const [user, setUser] = useState(null); 
+  const navigate = useNavigate();
+
   const navItems = [
     { title: 'Home', path: '/' },
     { title: 'All Products', path: '/all-products' },
@@ -12,8 +16,18 @@ const Navbar = () => {
     { title: 'Create Product', path: '/create-product' },
   ];
 
+  const handleLogout = async () => {
+    try {
+      // Add your logout function here (e.g., await logOut())
+      setUser(null);
+      navigate('/auth/login');
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
-    <header className=" backdrop-blur-md bg-base-100/80 mt-3">
+    <header className="backdrop-blur-md bg-base-100/80 mt-3 ">
       <div className="navbar w-11/12 mx-auto max-w-7xl px-0 py-2">
         {/* Navbar Start */}
         <div className="navbar-start">
@@ -65,7 +79,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Navbar Center (Desktop Links with Framer Motion Active Indicator) */}
+        {/* Navbar Center */}
         <div className="navbar-center hidden lg:flex">
           <ul className="flex items-center gap-1 bg-purple-50/60 border border-purple-100/80 p-1.5 rounded-full">
             {navItems.map((item) => (
@@ -96,17 +110,50 @@ const Navbar = () => {
           </ul>
         </div>
 
-        {/* Navbar End */}
-        <div className="navbar-end">
-          <Link to="/login">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="btn border-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-full px-7 min-h-0 h-11 font-medium shadow-md shadow-purple-500/20"
-            >
-              Login
-            </motion.button>
-          </Link>
+        {/* Navbar End - Conditional Render based on User State */}
+        <div className="navbar-end gap-3">
+          {user ? (
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar ring-2 ring-purple-600/30 hover:ring-purple-600">
+                <div className="w-10 rounded-full">
+                  <img
+                    alt={user?.displayName || "User Profile"}
+                    src={user?.photoURL || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
+                  />
+                </div>
+              </div>
+              <ul
+                tabIndex={0}
+                className="menu menu-sm dropdown-content bg-base-100 rounded-2xl z-50 mt-3 w-52 p-3 shadow-xl border border-gray-100 gap-1"
+              >
+                <li className="px-3 py-2 border-b border-gray-100 mb-1">
+                  <p className="font-bold text-gray-900 text-sm truncate">{user?.displayName || "User Name"}</p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                </li>
+                <li>
+                  <Link to="/my-products" className="py-2 text-gray-700 font-medium">My Products</Link>
+                </li>
+                <li>
+                  <Link to="/my-bids" className="py-2 text-gray-700 font-medium">My Bids</Link>
+                </li>
+                <li>
+                  <button onClick={handleLogout} className="py-2 text-rose-600 font-bold hover:bg-rose-50">
+                    Sign Out
+                  </button>
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <Link to="/auth/login">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="btn border-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-full px-7 min-h-0 h-11 font-medium shadow-md shadow-purple-500/20"
+              >
+                Login
+              </motion.button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
