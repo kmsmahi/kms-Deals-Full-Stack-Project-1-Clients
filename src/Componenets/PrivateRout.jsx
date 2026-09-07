@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router';
-import { AuthContext } from '../Provider/AuthProvider'; // Matches Provider directory naming
+import { AuthContext } from '../Provider/AuthProvider';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -21,7 +21,6 @@ const PrivateRoute = ({ children }) => {
     return children;
   }
 
-  // Pass current location in state so user is redirected back after logging in
   return <Navigate state={{ from: location.pathname }} to="/auth/login" replace />;
 };
 

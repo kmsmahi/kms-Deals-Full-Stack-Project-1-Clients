@@ -2,19 +2,29 @@ import React, { useContext } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router';
 import { HiMiniCurrencyDollar, HiUser } from "react-icons/hi2";
 import { motion } from 'framer-motion';
-import { AuthContext } from '../Provider/AuthProvider'; // Adjust path if needed
+import { AuthContext } from '../Provider/AuthProvider';
 
 const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const navItems = [
+  // Public items visible to all users
+  const publicNavItems = [
     { title: 'Home', path: '/' },
     { title: 'All Products', path: '/all-products' },
+  ];
+
+  // Protected items visible ONLY when authenticated
+  const protectedNavItems = [
     { title: 'My Products', path: '/my-products' },
     { title: 'My Bids', path: '/my-bids' },
     { title: 'Create Product', path: '/create-product' },
   ];
+
+  // Dynamically merge navigation items based on auth state
+  const visibleNavItems = user 
+    ? [...publicNavItems, ...protectedNavItems] 
+    : publicNavItems;
 
   const handleLogout = async () => {
     try {
@@ -44,7 +54,7 @@ const Navbar = () => {
               tabIndex={0}
               className="menu menu-sm dropdown-content bg-base-100 rounded-2xl z-50 mt-3 w-56 p-3 shadow-xl border border-purple-100 flex flex-col gap-1"
             >
-              {navItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
@@ -81,7 +91,7 @@ const Navbar = () => {
         {/* Navbar Center */}
         <div className="navbar-center hidden lg:flex">
           <ul className="flex items-center gap-1 bg-purple-50/60 border border-purple-100/80 p-1.5 rounded-full">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <li key={item.path} className="relative">
                 <NavLink
                   to={item.path}
@@ -147,6 +157,9 @@ const Navbar = () => {
                   </li>
                   <li>
                     <Link to="/my-bids" className="py-2 text-gray-700 font-medium">My Bids</Link>
+                  </li>
+                  <li>
+                    <Link to="/create-product" className="py-2 text-gray-700 font-medium">Create Product</Link>
                   </li>
                 </ul>
               </div>

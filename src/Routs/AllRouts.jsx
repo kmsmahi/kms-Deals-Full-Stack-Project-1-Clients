@@ -12,6 +12,7 @@ import Logout from "../Pages/Logout";
 import AuthLayout from "../Componenets/AuthLayout";
 import PrivateRoute from "../Componenets/PrivateRout";
 
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -27,27 +28,33 @@ const router = createBrowserRouter([
       },
       {
         path: "my-products",
-        element: <PrivateRoute>
-          <MyProducts />
-        </PrivateRoute>,
+        element: (
+          
+            <MyProducts />
+          
+        ),
       },
       {
         path: "my-bids",
-        element: <PrivateRoute>
-          <MyBids />
-        </PrivateRoute>,
+        element: (
+          
+            <MyBids />
+          
+        ),
       },
       {
         path: "create-product",
-        element: <PrivateRoute>
-          <CreateProduct />
-        </PrivateRoute>,
+        element: (
+          
+            <CreateProduct />
+          
+        ),
       },
       {
         path: "productDetails/:id",
-        element: <PrivateRoute>
+        element: (
           <ProductDetails />
-        </PrivateRoute>,
+        ),
       },
     ],
   },
