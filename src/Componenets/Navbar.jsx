@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router';
-import { HiMiniCurrencyDollar } from "react-icons/hi2";
+import { HiMiniCurrencyDollar, HiUser } from "react-icons/hi2";
 import { motion } from 'framer-motion';
+import { AuthContext } from '../Provider/AuthProvider'; // Adjust path if needed
 
 const Navbar = () => {
-  // Replace this placeholder with your actual AuthContext user state (e.g., const { user, logOut } = useAuth();)
-  const [user, setUser] = useState(null); 
+  const { user, logOut } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const navItems = [
@@ -18,8 +18,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      // Add your logout function here (e.g., await logOut())
-      setUser(null);
+      await logOut();
       navigate('/auth/login');
     } catch (error) {
       console.error("Logout failed:", error);
@@ -27,7 +26,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="backdrop-blur-md bg-base-100/80 mt-3 ">
+    <header className="backdrop-blur-md bg-base-100/80 mt-3">
       <div className="navbar w-11/12 mx-auto max-w-7xl px-0 py-2">
         {/* Navbar Start */}
         <div className="navbar-start">
@@ -110,38 +109,57 @@ const Navbar = () => {
           </ul>
         </div>
 
-        {/* Navbar End - Conditional Render based on User State */}
-        <div className="navbar-end gap-3">
+        {/* Navbar End */}
+        <div className="navbar-end gap-3 items-center">
           {user ? (
-            <div className="dropdown dropdown-end">
-              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar ring-2 ring-purple-600/30 hover:ring-purple-600">
-                <div className="w-10 rounded-full">
-                  <img
-                    alt={user?.displayName || "User Profile"}
-                    src={user?.photoURL || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
-                  />
+            <div className="flex items-center gap-3">
+              {/* Profile Image Dropdown */}
+              <div className="dropdown dropdown-end">
+                <div 
+                  tabIndex={0} 
+                  role="button" 
+                  title={user?.displayName || "User Profile"}
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-500 hover:border-purple-600 shadow-md shadow-purple-500/20 transition-all cursor-pointer flex items-center justify-center bg-purple-100"
+                >
+                  {user?.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user?.displayName || "Profile"}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <HiUser className="w-6 h-6 text-purple-600" />
+                  )}
                 </div>
+
+                {/* Profile Dropdown Menu */}
+                <ul
+                  tabIndex={0}
+                  className="menu menu-sm dropdown-content bg-base-100 rounded-2xl z-50 mt-3 w-52 p-3 shadow-xl border border-gray-100 gap-1"
+                >
+                  <li className="px-3 py-2 border-b border-gray-100 mb-1">
+                    <p className="font-bold text-gray-900 text-sm truncate">{user?.displayName || "User"}</p>
+                    <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                  </li>
+                  <li>
+                    <Link to="/my-products" className="py-2 text-gray-700 font-medium">My Products</Link>
+                  </li>
+                  <li>
+                    <Link to="/my-bids" className="py-2 text-gray-700 font-medium">My Bids</Link>
+                  </li>
+                </ul>
               </div>
-              <ul
-                tabIndex={0}
-                className="menu menu-sm dropdown-content bg-base-100 rounded-2xl z-50 mt-3 w-52 p-3 shadow-xl border border-gray-100 gap-1"
+
+              {/* Logout Button */}
+              <motion.button
+                onClick={handleLogout}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="btn border-none bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-full px-6 min-h-0 h-10 font-semibold text-sm transition-all"
               >
-                <li className="px-3 py-2 border-b border-gray-100 mb-1">
-                  <p className="font-bold text-gray-900 text-sm truncate">{user?.displayName || "User Name"}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                </li>
-                <li>
-                  <Link to="/my-products" className="py-2 text-gray-700 font-medium">My Products</Link>
-                </li>
-                <li>
-                  <Link to="/my-bids" className="py-2 text-gray-700 font-medium">My Bids</Link>
-                </li>
-                <li>
-                  <button onClick={handleLogout} className="py-2 text-rose-600 font-bold hover:bg-rose-50">
-                    Sign Out
-                  </button>
-                </li>
-              </ul>
+                Logout
+              </motion.button>
             </div>
           ) : (
             <Link to="/auth/login">

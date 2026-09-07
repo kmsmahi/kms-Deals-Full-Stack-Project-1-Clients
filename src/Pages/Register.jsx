@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
+import { AuthContext } from '../Provider/AuthProvider'; // Adjust path if needed
 
 const Register = () => {
+  const { createNewUser, updateUserProfile, googleLogin } = useContext(AuthContext);
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,10 +21,16 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validatePassword = (pass) => {
-    if (pass.length < 6) return 'Password must be at least 6 characters long.';
-    if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter.';
-    if (!/[a-z]/.test(pass)) return 'Password must contain at least one lowercase letter.';
+  const validatePassword = (password) => {
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long.';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'Password must contain at least one uppercase letter.';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'Password must contain at least one lowercase letter.';
+    }
     return null;
   };
 
@@ -29,33 +38,41 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    const validationError = validatePassword(formData.password);
-    if (validationError) {
-      setError(validationError);
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
     setLoading(true);
 
     try {
-      // Add user registration & profile update logic here
-      console.log('Registering user:', formData);
+      // 1. Create User
+      await createNewUser(formData.email, formData.password);
+
+      // 2. Update Profile Name & Photo
+      await updateUserProfile({
+        displayName: formData.name,
+        photoURL: formData.photoURL
+      });
+
       setLoading(false);
       navigate('/');
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to create an account. Try again.');
+      setError(err.message || 'Failed to create account. Please try again.');
       setLoading(false);
     }
   };
 
-  const handleGoogleRegister = async () => {
+  const handleGoogleLogin = async () => {
+    setError('');
     try {
-      // Add Google Registration here
-      console.log('Google registration triggered');
+      await googleLogin();
+      navigate('/');
     } catch (err) {
       console.error(err);
-      setError('Google Sign-Up failed.');
+      setError('Failed to sign up with Google.');
     }
   };
 
@@ -70,13 +87,13 @@ const Register = () => {
         {/* Header */}
         <div className="text-center space-y-2">
           <span className="text-xs font-bold uppercase tracking-widest text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-            Get Started
+            Join KmsDeals
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
             Create an Account
           </h2>
           <p className="text-xs text-gray-500">
-            Join our marketplace to post products and place live bids
+            Start buying, bidding, and selling items today
           </p>
         </div>
 
@@ -87,11 +104,11 @@ const Register = () => {
           </div>
         )}
 
-        {/* Social Sign Up */}
+        {/* Social Login Button */}
         <div>
           <button
             type="button"
-            onClick={handleGoogleRegister}
+            onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-gray-700 font-semibold text-sm transition-all shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -124,8 +141,8 @@ const Register = () => {
           </span>
         </div>
 
-        {/* Registration Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Register Form */}
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div className="form-control w-full">
             <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
               Full Name
@@ -136,7 +153,7 @@ const Register = () => {
               required
               value={formData.name}
               onChange={handleChange}
-              placeholder="John Doe"
+              placeholder="Your name"
               className="input input-bordered w-full font-medium text-gray-900 border-gray-200 focus:border-purple-600 focus:outline-none rounded-xl"
             />
           </div>
@@ -158,7 +175,7 @@ const Register = () => {
 
           <div className="form-control w-full">
             <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
-              Profile Photo URL
+              Photo URL
             </label>
             <input
               type="url"
@@ -193,15 +210,12 @@ const Register = () => {
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">
-              Must contain 6+ characters, an uppercase, and a lowercase letter.
-            </p>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2 mt-2"
           >
             {loading ? (
               <>
@@ -209,16 +223,15 @@ const Register = () => {
                 Creating account...
               </>
             ) : (
-              'Create Account'
+              'Register'
             )}
           </button>
         </form>
 
-        {/* Footer Link */}
         <p className="text-center text-xs text-gray-500">
           Already have an account?{' '}
-          <Link to="/login" className="font-bold text-purple-600 hover:underline">
-            Sign In
+          <Link to="/auth/login" className="font-bold text-purple-600 hover:underline">
+            Sign in
           </Link>
         </p>
       </motion.div>

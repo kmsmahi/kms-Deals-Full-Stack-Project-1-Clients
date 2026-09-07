@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { motion } from 'framer-motion';
+import { AuthContext } from '../Provider/AuthProvider'; // Adjust path if needed
 
 const Login = () => {
+  const { userLogin, googleLogin } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
@@ -22,21 +24,20 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Add Firebase/Auth login here (e.g., await signInWithEmailAndPassword(auth, email, password))
-      console.log('Logging in user:', formData);
+      await userLogin(formData.email, formData.password);
       setLoading(false);
       navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
-      setError('Invalid email or password. Please try again.');
+      setError(err.message || 'Invalid email or password. Please try again.');
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
+    setError('');
     try {
-      // Add Google OAuth Provider login here
-      console.log('Google login initiated');
+      await googleLogin();
       navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
@@ -72,7 +73,7 @@ const Login = () => {
           </div>
         )}
 
-        {/* Social Login Button */}
+        {/* Google Login Button */}
         <div>
           <button
             type="button"
@@ -109,7 +110,7 @@ const Login = () => {
           </span>
         </div>
 
-        {/* Login Form */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-control w-full">
             <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -131,9 +132,6 @@ const Login = () => {
               <label className="label text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Password
               </label>
-              <a href="#" className="text-xs font-semibold text-purple-600 hover:underline">
-                Forgot password?
-              </a>
             </div>
             <div className="relative">
               <input
@@ -171,7 +169,6 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Updated link target to match auth/register route */}
         <p className="text-center text-xs text-gray-500">
           Don't have an account?{' '}
           <Link to="/auth/register" className="font-bold text-purple-600 hover:underline">
