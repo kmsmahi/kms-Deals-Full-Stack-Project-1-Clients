@@ -10,6 +10,7 @@ import Login from "../Pages/Login";
 import Register from "../Pages/Register";
 import Logout from "../Pages/Logout";
 import AuthLayout from "../Componenets/AuthLayout";
+import PrivateRoute from "../Componenets/PrivateRout";
 
 const router = createBrowserRouter([
   {
@@ -26,19 +27,27 @@ const router = createBrowserRouter([
       },
       {
         path: "my-products",
-        element: <MyProducts />,
+        element: <PrivateRoute>
+          <MyProducts />
+        </PrivateRoute>,
       },
       {
         path: "my-bids",
-        element: <MyBids />,
+        element: <PrivateRoute>
+          <MyBids />
+        </PrivateRoute>,
       },
       {
         path: "create-product",
-        element: <CreateProduct />,
+        element: <PrivateRoute>
+          <CreateProduct />
+        </PrivateRoute>,
       },
       {
         path: "productDetails/:id",
-        element: <ProductDetails />,
+        element: <PrivateRoute>
+          <ProductDetails />
+        </PrivateRoute>,
       },
     ],
   },
