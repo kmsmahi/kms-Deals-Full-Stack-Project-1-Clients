@@ -1,12 +1,16 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router';
 import { HiMiniCurrencyDollar, HiUser } from "react-icons/hi2";
-import { motion } from 'framer-motion';
+import { HiMenu, HiX } from "react-icons/hi";
+import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../Provider/AuthProvider';
+
 
 const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   // Public items visible to all users
   const publicNavItems = [
@@ -26,8 +30,20 @@ const Navbar = () => {
     ? [...publicNavItems, ...protectedNavItems] 
     : publicNavItems;
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     try {
+      setIsOpen(false);
       await logOut();
       navigate('/auth/login');
     } catch (error) {
@@ -36,41 +52,102 @@ const Navbar = () => {
   };
 
   return (
-    <header className="backdrop-blur-md bg-base-100/80 mt-3">
+    <header className="sticky top-0 z-[999] backdrop-blur-md bg-base-100/90 border-b border-purple-100/50 shadow-sm">
       <div className="navbar w-11/12 mx-auto max-w-7xl px-0 py-2">
         {/* Navbar Start */}
         <div className="navbar-start">
-          <div className="dropdown">
-            <div 
-              tabIndex={0} 
-              role="button" 
-              className="btn btn-ghost lg:hidden text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+          {/* Mobile Dropdown Container */}
+          <div className="relative lg:hidden mr-2" ref={dropdownRef}>
+            <button 
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle Menu"
+              className="btn btn-ghost btn-circle text-purple-600 hover:bg-purple-50 hover:text-purple-700"
             >
-              <svg aria-label="Menu" xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
-              </svg>
-            </div>
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-2xl z-50 mt-3 w-56 p-3 shadow-xl border border-purple-100 flex flex-col gap-1"
-            >
-              {visibleNavItems.map((item) => (
-                <li key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive }) =>
-                      `px-4 py-2.5 rounded-xl font-medium transition-all ${
-                        isActive
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/20'
-                          : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
-                      }`
-                    }
-                  >
-                    {item.title}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+              {isOpen ? (
+                <HiX className="h-6 w-6" />
+              ) : (
+                <HiMenu className="h-6 w-6" />
+              )}
+            </button>
+
+            {/* Framer Motion Mobile Dropdown */}
+            <AnimatePresence>
+              {isOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                  className="absolute left-0 mt-3 w-64 p-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-purple-900/15 border border-purple-100/80 z-50 flex flex-col gap-1"
+                >
+                  {/* User Header in Mobile Menu (If Logged In) */}
+                  {user && (
+                    <div className="flex items-center gap-3 p-2.5 mb-1 bg-purple-50/60 rounded-xl border border-purple-100">
+                      <div className="w-9 h-9 rounded-full overflow-hidden border border-purple-300 flex-shrink-0 bg-purple-100 flex items-center justify-center">
+                        {user?.photoURL ? (
+                          <img
+                            src={user.photoURL}
+                            alt={user?.displayName || "Profile"}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <HiUser className="w-5 h-5 text-purple-600" />
+                        )}
+                      </div>
+                      <div className="flex flex-col truncate">
+                        <span className="font-bold text-gray-900 text-xs truncate">
+                          {user?.displayName || "User"}
+                        </span>
+                        <span className="text-[11px] text-gray-500 truncate">
+                          {user?.email}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nav Links */}
+                  <div className="flex flex-col gap-1">
+                    {visibleNavItems.map((item) => (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setIsOpen(false)}
+                        className={({ isActive }) =>
+                          `px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center justify-between ${
+                            isActive
+                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/20'
+                              : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50/80'
+                          }`
+                        }
+                      >
+                        {item.title}
+                      </NavLink>
+                    ))}
+                  </div>
+
+                  {/* Auth Action Footer for Mobile */}
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    {user ? (
+                      <button
+                        onClick={handleLogout}
+                        className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors text-center"
+                      >
+                        Logout
+                      </button>
+                    ) : (
+                      <Link
+                        to="/auth/login"
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 text-center shadow-md shadow-purple-500/20"
+                      >
+                        Login
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Logo */}
