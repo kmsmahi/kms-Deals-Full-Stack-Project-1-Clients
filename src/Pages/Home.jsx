@@ -7,7 +7,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3000/latest-products')
+    fetch('http://127.0.0.1:3000/latest-products')
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);

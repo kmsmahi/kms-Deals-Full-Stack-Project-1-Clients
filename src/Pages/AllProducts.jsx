@@ -19,7 +19,7 @@ const AllProducts = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:3000/all-products')
+    fetch('http://127.0.0.1:3000/all-products')
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Server returned status: ${res.status}`);
