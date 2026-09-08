@@ -52,7 +52,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-[999] backdrop-blur-md bg-base-100/90 border-b border-purple-100/50 shadow-sm">
+    <header className="top-0 z-[999] backdrop-blur-md bg-base-100/90  border-purple-100/50 ">
       <div className="navbar w-11/12 mx-auto max-w-7xl px-0 py-2">
         {/* Navbar Start */}
         <div className="navbar-start">
