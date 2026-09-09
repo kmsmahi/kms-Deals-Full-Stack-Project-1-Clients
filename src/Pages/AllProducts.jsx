@@ -19,7 +19,9 @@ const AllProducts = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch('http://127.0.0.1:3000/all-products')
+    const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+    fetch(`${API_URL}/all-products`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Server returned status: ${res.status}`);

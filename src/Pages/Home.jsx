@@ -7,7 +7,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:3000/latest-products')
+      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+      fetch(`${API_URL}/latest-products`)
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
