@@ -13,8 +13,8 @@ const MyProducts = () => {
   useEffect(() => {
     if (user?.email) {
       setLoading(true);
-      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-      
+      const API_URL = 'https://kms-deals-full-stack-project-1-server.onrender.com';
+
       fetch(`${API_URL}/my-products?email=${encodeURIComponent(user.email)}`)
         .then((res) => {
           if (!res.ok) {
@@ -41,7 +41,7 @@ const MyProducts = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this listing?");
     if (!confirmDelete) return;
 
-    const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const API_URL = 'https://kms-deals-full-stack-project-1-server.onrender.com';
 
     fetch(`${API_URL}/products/${productId}`, {
       method: 'DELETE',

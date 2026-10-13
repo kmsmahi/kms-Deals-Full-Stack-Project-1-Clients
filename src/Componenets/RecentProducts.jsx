@@ -3,7 +3,6 @@ import { Link } from 'react-router';
 import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
 
-// Container variant for staggered child animations
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {

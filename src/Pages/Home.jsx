@@ -7,7 +7,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+       const API_URL = 'https://kms-deals-full-stack-project-1-server.onrender.com';
 
       fetch(`${API_URL}/latest-products`)
       .then((res) => res.json())

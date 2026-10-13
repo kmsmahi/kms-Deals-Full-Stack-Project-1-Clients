@@ -3,32 +3,31 @@ import { Link } from 'react-router';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../Provider/AuthProvider';
 
-const MyBids = () => {
+const MyProducts = () => {
   const { user } = useContext(AuthContext);
-  const [bids, setBids] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch bids placed by the logged-in user
+  // Fetch products listed by the logged-in user
   useEffect(() => {
     if (user?.email) {
       setLoading(true);
-      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://kms-deals-full-stack-project-1-server.onrender.com';
 
-      fetch(`${API_URL}/my-bids?email=${encodeURIComponent(user.email)}`)
+      fetch(`${API_URL}/my-products?email=${encodeURIComponent(user.email)}`)
         .then((res) => {
           if (!res.ok) {
-            throw new Error(`Failed to fetch bids: ${res.status}`);
+            throw new Error(`Failed to fetch products: ${res.status}`);
           }
           return res.json();
         })
         .then((data) => {
-          console.log("ACTUAL BIDS DATA FROM BACKEND:", data);
-          setBids(Array.isArray(data) ? data : []);
+          setProducts(Array.isArray(data) ? data : []);
           setLoading(false);
         })
         .catch((err) => {
-          console.error("Error fetching my bids:", err);
+          console.error("Error fetching my products:", err);
           setError(err.message);
           setLoading(false);
         });
@@ -37,25 +36,25 @@ const MyBids = () => {
     }
   }, [user?.email]);
 
-  // Handle removing/withdrawing a bid
-  const handleRemoveBid = (bidId) => {
-    const confirmDelete = window.confirm("Are you sure you want to withdraw this bid?");
+  // Handle deleting a product
+  const handleDeleteProduct = (productId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this listing?");
     if (!confirmDelete) return;
 
-    const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const API_URL = 'https://kms-deals-full-stack-project-1-server.onrender.com';
 
-    fetch(`${API_URL}/bids/${bidId}`, {
+    fetch(`${API_URL}/products/${productId}`, {
       method: 'DELETE',
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.deletedCount > 0) {
-          setBids((prevBids) => prevBids.filter((bid) => bid._id !== bidId));
+          setProducts((prevProducts) => prevProducts.filter((item) => item._id !== productId));
         } else {
-          alert("Failed to withdraw bid. Please try again.");
+          alert("Failed to delete product. Please try again.");
         }
       })
-      .catch((err) => console.error("Error removing bid:", err));
+      .catch((err) => console.error("Error deleting product:", err));
   };
 
   return (
@@ -63,13 +62,13 @@ const MyBids = () => {
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
         <span className="text-xs font-bold uppercase tracking-widest text-purple-600 bg-purple-100/80 px-3.5 py-1.5 rounded-full">
-          Bidding History
+          Seller Dashboard
         </span>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mt-3">
-          My Placed Bids
+          My Listed Products
         </h1>
         <p className="text-gray-600 text-sm sm:text-base">
-          Track, manage, and monitor the status of all bids you have submitted across KMS-DEALS.
+          Manage, track, and monitor all product listings you have posted on KMS-DEALS.
         </p>
       </div>
 
@@ -82,161 +81,97 @@ const MyBids = () => {
 
       {/* Error State */}
       {error && (
-        <div className="text-center py-10 bg-red-50 text-red-600 rounded-2xl border border-red-200">
-          <p className="font-bold">Failed to load bids</p>
+        <div className="text-center py-10 bg-red-50 text-red-600 rounded-2xl border border-red-200 max-w-xl mx-auto">
+          <p className="font-bold">Failed to load listings</p>
           <p className="text-sm">{error}</p>
         </div>
       )}
 
       {/* Empty State */}
-      {!loading && !error && bids.length === 0 && (
-        <div className="text-center py-16 bg-slate-50 rounded-2xl border border-dashed border-gray-300 space-y-3">
-          <p className="text-gray-600 font-semibold text-lg">You haven't placed any bids yet.</p>
-          <p className="text-sm text-gray-400">Explore active marketplace listings to start bidding.</p>
+      {!loading && !error && products.length === 0 && (
+        <div className="text-center py-16 bg-slate-50 rounded-3xl border border-dashed border-gray-300 space-y-4 max-w-xl mx-auto">
+          <p className="text-gray-600 font-semibold text-lg">You haven't listed any products yet.</p>
+          <p className="text-sm text-gray-400">Start selling by adding your first product listing.</p>
+          <Link
+            to="/create-product"
+            className="inline-block px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md shadow-purple-500/20"
+          >
+            Create Product
+          </Link>
         </div>
       )}
 
-      {/* Bids Table */}
-      {!loading && !error && bids.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
-        >
-          <div className="overflow-x-auto">
-            <table className="table w-full">
-              {/* Table Head */}
-              <thead className="bg-slate-50 text-gray-700 uppercase text-xs tracking-wider">
-                <tr>
-                  <th className="py-4 px-6 text-left">SL</th>
-                  <th className="py-4 px-6 text-left">Product</th>
-                  <th className="py-4 px-6 text-left">Seller Info</th>
-                  <th className="py-4 px-6 text-left">Bid Price</th>
-                  <th className="py-4 px-6 text-center">Status</th>
-                  <th className="py-4 px-6 text-center">Action</th>
-                </tr>
-              </thead>
+      {/* Products Grid */}
+      {!loading && !error && products.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
+            <motion.div
+              key={product._id}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow"
+            >
+              {/* Product Image */}
+              <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
+                <img
+                  src={product.image || "https://via.placeholder.com/400x250"}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-3 left-3 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-purple-700 shadow-sm">
+                  {product.category || "General"}
+                </span>
+              </div>
 
-              {/* Table Body */}
-              <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                {bids.map((bid, index) => {
-                  const product = bid.productDetails || {};
-                  
-                  const productImage = product.image || product.photo || product.coverImage || "https://via.placeholder.com/80";
-                  const productTitle = product.title || product.product_name || product.name || "Untitled Product";
-                  const productCategory = product.category || "General";
+              {/* Product Content */}
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 line-clamp-1 mb-1">
+                    {product.title}
+                  </h2>
+                  <p className="text-xs text-gray-500 line-clamp-2">
+                    {product.description}
+                  </p>
+                </div>
 
-                  const sellerName = product.seller_name || product.owner_name || product.seller_email?.split('@')[0] || "Seller";
-                  const sellerEmail = product.seller_email || product.owner_email || product.email || "N/A";
-                  const sellerImage = product.seller_image || product.owner_image;
+                {/* Price Range & Details */}
+                <div className="space-y-2 border-t border-gray-100 pt-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 text-xs">Price Range:</span>
+                    <span className="font-extrabold text-purple-700">
+                      ${Number(product.price_min || 0).toLocaleString()} - ${Number(product.price_max || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-gray-500">
+                    <span>Condition: <strong className="text-gray-700">{product.condition}</strong></span>
+                    <span>Usage: <strong className="text-gray-700">{product.usage_time}</strong></span>
+                  </div>
+                </div>
 
-                  return (
-                    <tr key={bid._id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* SL No */}
-                      <td className="py-4 px-6 font-bold text-gray-500">
-                        {index + 1}
-                      </td>
-
-                      {/* Product Info */}
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={productImage}
-                            alt={productTitle}
-                            className="w-12 h-12 rounded-xl object-cover border border-gray-200 shadow-sm"
-                          />
-                          <div>
-                            <p className="font-bold text-gray-900 line-clamp-1">
-                              {productTitle}
-                            </p>
-                            <span className="text-xs text-purple-600 font-medium">
-                              {productCategory}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Seller Info */}
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2.5">
-                          {sellerImage && (
-                            <img
-                              src={sellerImage}
-                              alt={sellerName}
-                              className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm"
-                            />
-                          )}
-                          <div>
-                            <p className="font-semibold text-gray-800">
-                              {sellerName}
-                            </p>
-                            <p className="text-xs text-gray-500">{sellerEmail}</p>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Bid Price */}
-                      <td className="py-4 px-6 font-extrabold text-purple-700 text-base">
-                        ${Number(bid.bid_price || 0).toLocaleString()}
-                      </td>
-
-                      {/* Status Badge */}
-                      <td className="py-4 px-6 text-center">
-                        <span
-                          className={`inline-block text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
-                            bid.status?.toLowerCase() === 'confirmed' || bid.status?.toLowerCase() === 'accepted'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : bid.status?.toLowerCase() === 'rejected'
-                              ? 'bg-rose-100 text-rose-700'
-                              : 'bg-amber-100 text-amber-700'
-                          }`}
-                        >
-                          {bid.status || 'Pending'}
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className="py-4 px-6 text-center">
-                        <button
-                          onClick={() => handleRemoveBid(bid._id)}
-                          disabled={
-                            bid.status?.toLowerCase() === 'confirmed' || 
-                            bid.status?.toLowerCase() === 'accepted'
-                          }
-                          className="btn btn-sm btn-ghost text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
-                          title={
-                            bid.status?.toLowerCase() === 'confirmed' || bid.status?.toLowerCase() === 'accepted'
-                              ? "Confirmed bids cannot be removed"
-                              : "Withdraw Bid"
-                          }
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                          Withdraw
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <Link
+                    to={`/productDetails/${product._id}`}
+                    className="flex-1 py-2 text-center text-xs font-bold rounded-xl text-purple-600 bg-purple-50 hover:bg-purple-100 transition-colors "
+                  >
+                    View Details
+                  </Link>
+                  <button
+                    onClick={() => handleDeleteProduct(product._id)}
+                    className="py-2 px-3 text-xs font-bold rounded-xl text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                    title="Delete Listing"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       )}
     </div>
   );
 };
 
-export default MyBids;
+export default MyProducts;

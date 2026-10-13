@@ -19,7 +19,7 @@ const AllProducts = () => {
 
   useEffect(() => {
     setLoading(true);
-    const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const API_URL = 'https://kms-deals-full-stack-project-1-server.onrender.com';
 
     fetch(`${API_URL}/all-products`)
       .then((res) => {
@@ -29,7 +29,6 @@ const AllProducts = () => {
         return res.json();
       })
       .then((data) => {
-        console.log("Fetched Data in React:", data); // Check browser console (F12)
         if (Array.isArray(data)) {
           setAllProducts(data);
         } else {

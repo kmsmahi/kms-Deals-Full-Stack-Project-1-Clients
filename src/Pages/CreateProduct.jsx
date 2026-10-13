@@ -61,9 +61,10 @@ const CreateProduct = () => {
       price_max: Number(formData.price_max),
       created_at: new Date()
     };
-
+     const API_URL = 'https://kms-deals-full-stack-project-1-server.onrender.com';
+// prob lem..........................
     try {
-      const response = await fetch('http://127.0.0.1:3000/products', {
+      const response = await fetch(`${API_URL}/products`,{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
