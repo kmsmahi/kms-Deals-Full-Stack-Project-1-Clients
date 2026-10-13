@@ -13,7 +13,9 @@ const MyProducts = () => {
   useEffect(() => {
     if (user?.email) {
       setLoading(true);
-      fetch(`http://127.0.0.1:3000/my-products?email=${encodeURIComponent(user.email)}`)
+      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      
+      fetch(`${API_URL}/my-products?email=${encodeURIComponent(user.email)}`)
         .then((res) => {
           if (!res.ok) {
             throw new Error(`Failed to fetch products: ${res.status}`);
@@ -39,7 +41,9 @@ const MyProducts = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this listing?");
     if (!confirmDelete) return;
 
-    fetch(`http://127.0.0.1:3000/products/${productId}`, {
+    const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+    fetch(`${API_URL}/products/${productId}`, {
       method: 'DELETE',
     })
       .then((res) => res.json())
@@ -136,7 +140,7 @@ const MyProducts = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500 text-xs">Price Range:</span>
                     <span className="font-extrabold text-purple-700">
-                      ${Number(product.price_min || 0).toLocaleString()} - ${Number(product.price_max || 0).toLocaleString()}
+                      ${Number(product.price_min \vert{}\vert{} 0).toLocaleString()} -${Number(product.price_max || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs text-gray-500">

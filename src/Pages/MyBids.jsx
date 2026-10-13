@@ -13,7 +13,9 @@ const MyBids = () => {
   useEffect(() => {
     if (user?.email) {
       setLoading(true);
-      fetch(`http://127.0.0.1:3000/my-bids?email=${encodeURIComponent(user.email)}`)
+      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+      fetch(`${API_URL}/my-bids?email=${encodeURIComponent(user.email)}`)
         .then((res) => {
           if (!res.ok) {
             throw new Error(`Failed to fetch bids: ${res.status}`);
@@ -40,7 +42,9 @@ const MyBids = () => {
     const confirmDelete = window.confirm("Are you sure you want to withdraw this bid?");
     if (!confirmDelete) return;
 
-    fetch(`http://127.0.0.1:3000/bids/${bidId}`, {
+    const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+    fetch(`${API_URL}/bids/${bidId}`, {
       method: 'DELETE',
     })
       .then((res) => res.json())
@@ -119,16 +123,10 @@ const MyBids = () => {
                 {bids.map((bid, index) => {
                   const product = bid.productDetails || {};
                   
-                  // Extract image with fallback
                   const productImage = product.image || product.photo || product.coverImage || "https://via.placeholder.com/80";
-                  
-                  // Extract product title with fallback
                   const productTitle = product.title || product.product_name || product.name || "Untitled Product";
-                  
-                  // Extract category
                   const productCategory = product.category || "General";
 
-                  // Extract seller details with fallback
                   const sellerName = product.seller_name || product.owner_name || product.seller_email?.split('@')[0] || "Seller";
                   const sellerEmail = product.seller_email || product.owner_email || product.email || "N/A";
                   const sellerImage = product.seller_image || product.owner_image;
