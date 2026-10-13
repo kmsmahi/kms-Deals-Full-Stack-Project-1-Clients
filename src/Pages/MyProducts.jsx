@@ -140,7 +140,7 @@ const MyProducts = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500 text-xs">Price Range:</span>
                     <span className="font-extrabold text-purple-700">
-                      ${Number(product.price_min \vert{}\vert{} 0).toLocaleString()} -${Number(product.price_max || 0).toLocaleString()}
+                      ${Number(product.price_min || 0).toLocaleString()} - ${Number(product.price_max || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs text-gray-500">
