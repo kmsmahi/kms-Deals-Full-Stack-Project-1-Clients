@@ -4,6 +4,10 @@
 
 ---
 
+## 🌐 Live Application
+
+👉 **[Visit KMS-DEALS Live Site](https://kms-deals.netlify.app/)**
+
 ## 📌 Project Overview
 
 **KMS-DEALS Client** is the frontend application of the KMS-DEALS full-stack marketplace project.
