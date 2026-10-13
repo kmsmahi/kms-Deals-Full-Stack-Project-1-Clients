@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 const ProductDetails = () => {
   const { id } = useParams();
 
+  // Dynamic API URL helper for local and production environments
+  const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://kms-deals-full-stack-project-1-server.onrender.com';
+
   // State Management
   const [product, setProduct] = useState(null);
   const [bids, setBids] = useState([]);
@@ -25,7 +28,7 @@ const ProductDetails = () => {
   // 1. Fetch Product Details
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:3000/productDetails/${id}`)
+    fetch(`${API_URL}/productDetails/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch product details.');
         return res.json();
@@ -39,12 +42,12 @@ const ProductDetails = () => {
         setError(err.message);
         setLoading(false);
       });
-  }, [id]);
+  }, [id, API_URL]);
 
-  // 2. Fetch All Bids for This Specific Product (GET /bids/product/:productId)
+  // 2. Fetch All Bids for This Specific Product
   const fetchBids = () => {
     setBidsLoading(true);
-    fetch(`http://localhost:3000/bids/product/${id}`)
+    fetch(`${API_URL}/bids/product/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch bids.');
         return res.json();
@@ -106,7 +109,7 @@ const ProductDetails = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:3000/bids', {
+      const response = await fetch(`${API_URL}/bids`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -139,7 +142,7 @@ const ProductDetails = () => {
   // 4. Update Bid Status: Accept or Reject (PATCH /bids/:id)
   const handleStatusUpdate = async (bidId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:3000/bids/${bidId}`, {
+      const response = await fetch(`${API_URL}/bids/${bidId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

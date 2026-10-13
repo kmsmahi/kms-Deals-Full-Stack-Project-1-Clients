@@ -52,7 +52,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="top-0 z-[999] backdrop-blur-md bg-base-100/90  border-purple-100/50 ">
+    <header className="sticky top-0 z-[999] backdrop-blur-md bg-base-100/90 border-b border-purple-100/50">
       <div className="navbar w-11/12 mx-auto max-w-7xl px-0 py-2">
         {/* Navbar Start */}
         <div className="navbar-start">
@@ -78,7 +78,7 @@ const Navbar = () => {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
-                  className="absolute left-0 mt-3 w-64 p-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-purple-900/15 border border-purple-100/80 z-50 flex flex-col gap-1"
+                  className="absolute left-0 mt-3 w-72 max-w-[90vw] p-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-purple-900/25 border border-purple-100/80 z-[1000] flex flex-col gap-1"
                 >
                   {/* User Header in Mobile Menu (If Logged In) */}
                   {user && (
